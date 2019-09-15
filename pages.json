@@ -1,0 +1,26 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		
+		{
+		    "path" : "pages/type/type",
+		    "style" : {}
+		},{
+			"path": "pages/home/fab",
+			"style": {
+				"navigationBarTitleText": "波妞的图片搜集器"
+			}
+		}
+		
+        ,{
+            "path" : "pages/uploadImg/uploadImg",
+            "style" : {}
+        }
+        
+    ],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "波妞的图片搜集器",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
+}
