@@ -2,10 +2,12 @@
 	<view>
 		<!-- 图片分类展示 -->
 		<uni-collapse>
-			<uni-collapse-item :show-animation="true" v-for="(type,index) in types" :key="index" :title="type.name">
+			<uni-collapse-item :show-animation="true" v-for="(type,index) in typeList" :key="index" :title="type.name">
 				<view class="img-container">
-					<view class="img-item" v-for="(img,i) in imageList" :key="i">
-						<image :src="img" :data-src="img" mode="aspectFit" @tap="previewImage"></image>
+					<text v-if="typeimages[type.id].length===0" class="empty-text">什么也没有哟</text>
+					
+					<view class="img-item" v-for="(img,i) in typeimages[type.id]" :key="i">
+						<image :src="img.name" :data-src="img.name" mode="aspectFit" @tap="previewImage"></image>
 					</view>
 				</view>
 				<view class="padding-block"></view>
@@ -28,16 +30,31 @@
 			uniCollapseItem,
 			uniFab
 		},
+		onPullDownRefresh: function() {
+			this.loadTypeList();
+			this.loadImageList();
+			setTimeout(function() {
+				uni.stopPullDownRefresh();
+			}, 1000);
+		},
+		onLoad: function() {
+			this.typeimages = {
+				'abc': [{
+					name: "../../static/logo.png"
+				}, {
+					name: "../../static/logo.png"
+				}]
+			}
+
+			this.loadTypeList();
+			this.loadImageList();
+
+		},
 		data() {
 			return {
-				imageList: ["../../static/logo.png", "../../static/logo.png", "../../static/logo.png", "../../static/logo.png"],
-				types: [{
-					id: -1,
-					name: '默认'
-				}, {
-					id: 0,
-					name: '旅游'
-				}],
+				typeList: [],
+				imageList: [],
+				typeimages: new Map(),
 				horizontal: 'right',
 				vertical: 'bottom',
 				direction: 'vertical',
@@ -61,6 +78,63 @@
 			}
 		},
 		methods: {
+			loadImageList: function() {
+				const token_id = getApp().globalData.userInfo.id;
+				uni.request({
+					url: `${getApp().globalData.baseUrl}images/image`,
+					method: "GET",
+					header: {
+						'content-type': 'application/x-www-form-urlencoded'
+					},
+					data: {
+						token_id
+					},
+					success: (res) => {
+						const {
+							code
+						} = res.data;
+						const {
+							data
+						} = res.data;
+						if (code === 200) {
+							this.imageList = data.map(v => {
+								v.name = `${getApp().globalData.baseUrl}file/image?name=${v.name}&token_id=${token_id}`
+								return v;
+							})
+							
+							this.typeList.forEach(v1=>{
+								this.typeimages[v1.id]=this.imageList.filter(v2=>{
+									return v2.types_id===v1.id;
+								})
+							})
+						}
+
+					}
+				})
+			},
+			loadTypeList: function() {
+				uni.request({
+					url: `${getApp().globalData.baseUrl}types/type`,
+					method: "GET",
+					header: {
+						'content-type': 'application/x-www-form-urlencoded'
+					},
+					data: {
+						token_id: getApp().globalData.userInfo.id
+					},
+					success: (res) => {
+						const {
+							code
+						} = res.data;
+						if (code === 200) {
+							this.typeList = [{
+								id: -1,
+								name: '默认'
+							}].concat(res.data.data);
+						}
+					}
+				})
+			},
 			trigger(e) {
 				const {
 					text
@@ -80,7 +154,7 @@
 				const current = e.target.dataset.src
 				uni.previewImage({
 					current: current,
-					urls: this.imageList
+					urls: this.imageList.map(v => v.name)
 				})
 			}
 		}
@@ -121,5 +195,11 @@
 		display: block;
 		width: 100vw;
 		height: 3rem;
+	}
+	
+	.empty-text{
+		color:rgba(0,0,0,0.6);
+		text-align: center;
+		padding-top:0.6rem;
 	}
 </style>

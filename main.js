@@ -5,9 +5,9 @@ import pageHead from './components/page-head.vue'
 import pageFoot from './components/page-foot.vue'
 
 Vue.config.productionTip = false
-
 Vue.component('page-head', pageHead)
 Vue.component('page-foot', pageFoot)
+
 
 App.mpType = 'app'
 

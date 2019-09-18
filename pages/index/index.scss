@@ -1,0 +1,37 @@
+.input-area {
+		margin-top: 9rem;
+		position: relative;
+
+		input {
+			font-size: 1rem;
+			text-align: center;
+			padding-right: 1rem;
+		}
+
+		.hid-btn {
+			position: absolute;
+			right: 0.5rem;
+			top: 0.1rem;
+		}
+	}
+
+	.btn-area {
+		padding: 1rem;
+
+		button {
+			width: 100%;
+		}
+	}
+	.remember{
+		text-align: center;
+	}
+	
+	.sugar{
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		input{
+			color:#000;
+			background-color: cyan;
+		}
+	}

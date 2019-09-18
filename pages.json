@@ -1,24 +1,27 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
-		    "path" : "pages/index/index",
-		    "style" : {}
+			"path": "pages/index/index",
+			"style": {}
 		},
 		{
-		    "path" : "pages/type/type",
-		    "style" : {}
-		},{
+			"path": "pages/uploadImg/uploadImg",
+			"style": {}
+		},
+
+		{
+			"path": "pages/type/type",
+			"style": {}
+		},
+		{
 			"path": "pages/home/fab",
 			"style": {
-				"navigationBarTitleText": "波妞的图片搜集器"
+				"navigationBarTitleText": "波妞的图片搜集器",
+				"enablePullDownRefresh":true
 			}
 		}
-		
-        ,{
-            "path" : "pages/uploadImg/uploadImg",
-            "style" : {}
-        }
-    ],
+
+	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "波妞的图片搜集器",

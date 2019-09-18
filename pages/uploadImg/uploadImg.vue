@@ -71,7 +71,7 @@
 			
 			<!-- 上传按钮 -->
 			<view class="btn-container">
-				<button type="primary" loading="true">开始上传</button>
+				<button type="primary" :loading="uploadStatus" @tap="sureUpload">{{uploadBtnText}}</button>
 			</view>
 			
 			</form>
@@ -92,8 +92,12 @@
 	export default {
 		data() {
 			return {
+				uploadBtnText:"开始上传",
+				uploadStatus:false,
+				uploadCount:0,
 				listTypeInedx: 0,
 				listType: ['默认', '旅游', '国庆', '中秋'],
+				typeList:[],
 				title: '图片上传',
 				imageList: [],
 				sourceTypeIndex: 2,
@@ -110,8 +114,74 @@
 				this.sizeTypeIndex = 2,
 				this.sizeType = ['压缩', '原图', '压缩或原图'],
 				this.count=9;
+				console.log("onUnload uploadImage page");
+		},
+		onLoad:function(){
+			this.loadTypeList();
 		},
 		methods: {
+			sureUpload:async function(){
+				this.uploadStatus=true;
+				this.uploadBtnText=`味儿咯..味儿咯..已完成${this.uploadCount}`;
+				this.imageList.forEach(async (filePath,index)=>{
+					const res=await this.uploadFile(filePath);
+					this.uploadBtnText=`味儿咯..味儿咯..已完成${++this.uploadCount}`;
+					console.log(this.uploadCount,this.imageList.length);
+					if(this.uploadCount===this.imageList.length){
+						this.uploadBtnText=`开始上传`;
+						this.uploadStatus=false;
+						this.imageList=[];
+						uni.showToast({
+							title:"么么哒",
+							duration:2000
+						})
+					}
+				})
+				
+			},
+			uploadFile:function(filePath){
+				return new Promise(resolve=>{
+					uni.uploadFile({
+						url:`${getApp().globalData.baseUrl}file/upload`,
+						formData:{
+							token_id:getApp().globalData.userInfo.id,
+							types_id:this.typeList[this.listTypeInedx].id
+						},
+						filePath:filePath,
+						name:"file",
+						success: (res) => {
+							resolve(res);
+						}
+					})
+				})
+			}
+			,
+			loadTypeList: function() {
+				uni.request({
+					url: `${getApp().globalData.baseUrl}types/type`,
+					method: "GET",
+					header: {
+						'content-type': 'application/x-www-form-urlencoded'
+					},
+					data: {
+						token_id: getApp().globalData.userInfo.id
+					},
+					success: (res) => {
+						const {
+							code
+						} = res.data;
+						if (code === 200) {
+							this.typeList = [{
+								id: -1,
+								name: '默认'
+							}].concat(res.data.data);
+							this.listType=this.typeList.map(v=>{
+								return v.name
+							})
+						}
+					}
+				})
+			},
 			sourceTypeChange: function(e) {
 				this.sourceTypeIndex = e.target.value
 			},
@@ -135,9 +205,11 @@
 					sizeType: sizeType[this.sizeTypeIndex],
 					count: this.imageList.length + this.count > 9 ? 9 - this.imageList.length : this.count,
 					success: (res) => {
-						this.imageList = this.imageList.concat(res.tempFilePaths);
+						this.imageList = Array.from(new Set(this.imageList.concat(res.tempFilePaths)));
 					}
 				})
+				
+				
 			},
 			isFullImg: function() {
 				return new Promise((res) => {
