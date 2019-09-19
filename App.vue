@@ -1,7 +1,7 @@
 <script>
 	export default {
 		globalData: {
-			baseUrl: "http://yk6x8t.natappfree.cc/api/",
+			baseUrl: "http://sugar.nat300.top/api/",
 			userInfo:{
 				id:1,
 				token:"abcdefg"
@@ -20,6 +20,7 @@
 </script>
 
 <style>
+	@import "./wxcomponents/vant/common/index.wxss";
 	/*每个页面公共css */
 	@import './common/uni.css';
 </style>

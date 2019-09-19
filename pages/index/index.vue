@@ -5,7 +5,7 @@
 			<view class="hid-btn uni-icon uni-icon-eye" :class="[!showPassword ? 'uni-active' : '']" @click="changePassword"></view>
 		</view>
 		<view class="btn-area">
-			<button type="primary" class="sure-go" @tap="sureGo">GO!</button>
+			<button type="primary" class="sure-go" :loading="loading" @tap="sureGo">GO!</button>
 		</view>
 		<view class="remember">
 			<switch style="transform:scale(0.9)" :checked="checked" @change="rememberToken" />
@@ -27,6 +27,7 @@
 	export default {
 		data() {
 			return {
+				loading:false,
 				showPassword: true,
 				token: '',
 				checked:false,
@@ -88,6 +89,7 @@
 				this.showPassword = !this.showPassword;
 			},
 			sureGo: function() {
+				this.loading=!this.loading;
 				if(this.checked){
 					uni.setStorageSync("local_token",this.token);
 					uni.setStorageSync("checked",this.checked);
@@ -106,6 +108,7 @@
 							code
 						} = res.data;
 						if (code === 200) {
+							this.loading=!this.loading;
 							uni.showToast({
 								title: "暗号正确"
 							})
@@ -122,10 +125,12 @@
 								icon: 'none',
 								title: "暗号不正确"
 							})
+							this.loading=!this.loading;
 						}
 					},
 					fail: (err) => {
 						console.error(err);
+						this.loading=!this.loading;
 					}
 				})
 			}

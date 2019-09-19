@@ -1,33 +1,36 @@
 <template>
 	<view>
 		<!-- 图片分类展示 -->
-		<uni-collapse>
-			<uni-collapse-item :show-animation="true" v-for="(type,index) in typeList" :key="index" :title="type.name">
-				<view class="img-container">
-					<text v-if="typeimages[type.id].length===0" class="empty-text">什么也没有哟</text>
-					
-					<view class="img-item" v-for="(img,i) in typeimages[type.id]" :key="i">
-						<image :src="img.name" :data-src="img.name" mode="aspectFit" @tap="previewImage"></image>
-					</view>
+		<view class="top-area">
+			<van-tabs sticky animated :active="active" @click="changeType" color="#1989fa">
+				<van-tab v-for="(category,index) in typeList" :title="category.name" :key="index"></van-tab>
+			</van-tabs>
+		</view>
+		
+		<!-- 空内容提示 -->
+		<view class="empty-text" v-if="dataImgsKeys.length===0">什么也没有嘞</view>
+		<!-- 图片显示区域  -->
+		<view class="img-area" v-for="(date,index) in dataImgsKeys" :key="index">
+			<view class="title">{{date}}</view>
+			<view class="img-container">
+				<view class="img-item" v-for="(img,i) in dataImgs[date]" :key="i">
+					<image :src="img.name" :data-src="img.name" mode="aspectFill" @tap="previewImage"></image>
 				</view>
-				<view class="padding-block"></view>
-			</uni-collapse-item>
-		</uni-collapse>
+			</view>
+		</view>
+
+
 		<!-- 上传图片入口 -->
-		<uni-fab ref="fab" :pattern="pattern" :content="content" :horizontal="horizontal" :vertical="vertical" :direction="direction"
+		<uni-fab ref="fab" :pattern="pattern" :content="content" horizontal="right" vertical="bottom" direction="vertical"
 		 @trigger="trigger" />
+
 	</view>
 </template>
 
 <script>
 	import uniFab from '@/components/uni-fab/uni-fab.vue'
-	import uniCollapse from '@/components/uni-collapse/uni-collapse.vue'
-	import uniCollapseItem from '@/components/uni-collapse-item/uni-collapse-item.vue'
-
 	export default {
 		components: {
-			uniCollapse,
-			uniCollapseItem,
 			uniFab
 		},
 		onPullDownRefresh: function() {
@@ -35,7 +38,7 @@
 			this.loadImageList();
 			setTimeout(function() {
 				uni.stopPullDownRefresh();
-			}, 1000);
+			}, 500);
 		},
 		onLoad: function() {
 			this.typeimages = {
@@ -48,16 +51,19 @@
 
 			this.loadTypeList();
 			this.loadImageList();
-
 		},
 		data() {
 			return {
+				obj: {
+					name: "小明",
+					age: 18
+				},
+				active: 0, //默认选中第一个分类
 				typeList: [],
 				imageList: [],
-				typeimages: new Map(),
-				horizontal: 'right',
-				vertical: 'bottom',
-				direction: 'vertical',
+				orignImageList: [],
+				dataImgs: {},
+				dataImgsKeys: [],
 				pattern: {
 					color: '#7A7E83',
 					backgroundColor: '#fff',
@@ -78,6 +84,42 @@
 			}
 		},
 		methods: {
+
+			/**
+			 * 分类切换设备数据
+			 * @param {Event} e
+			 */
+			changeType: function(e) {
+				const {
+					index
+				} = e.detail;
+				this.active=index;
+				this.loadSelectType(index);
+			},
+			loadSelectType:function(index){
+				if (this.typeList[index].id === 0) {
+					this.imageList = this.orignImageList;
+				} else {
+					this.imageList = this.orignImageList.filter(v => {
+						return v.types_id === this.typeList[index].id;
+					})
+				}
+				
+				// 取得所有日期
+				const obj = {};
+				this.imageList.forEach(v => {
+					const key = (new Date(v.create_date)).Format("yyyy-MM-dd");
+					if (obj.hasOwnProperty(key)) {
+						obj[key].push(v);
+					} else {
+						obj[key] = [];
+						obj[key].push(v);
+					}
+				
+				});
+				this.dataImgs = obj;
+				this.dataImgsKeys = Object.keys(obj);
+			},
 			loadImageList: function() {
 				const token_id = getApp().globalData.userInfo.id;
 				uni.request({
@@ -97,16 +139,12 @@
 							data
 						} = res.data;
 						if (code === 200) {
-							this.imageList = data.map(v => {
+							this.orignImageList = data.map(v => {
 								v.name = `${getApp().globalData.baseUrl}file/image?name=${v.name}&token_id=${token_id}`
 								return v;
 							})
-							
-							this.typeList.forEach(v1=>{
-								this.typeimages[v1.id]=this.imageList.filter(v2=>{
-									return v2.types_id===v1.id;
-								})
-							})
+							this.imageList = this.orignImageList;
+							this.loadSelectType(this.active);
 						}
 
 					}
@@ -128,6 +166,9 @@
 						} = res.data;
 						if (code === 200) {
 							this.typeList = [{
+								id: 0,
+								name: "全部"
+							}, {
 								id: -1,
 								name: '默认'
 							}].concat(res.data.data);
@@ -162,44 +203,5 @@
 </script>
 
 <style scoped lang="scss">
-	page {
-		display: flex;
-		flex-direction: column;
-		box-sizing: border-box;
-		background-color: #fff
-	}
-
-	view {
-		font-size: 28upx;
-		line-height: inherit
-	}
-
-	.img-container {
-		display: flex;
-		justify-content: space-around;
-		flex-wrap: wrap;
-
-		.img-item {
-			width: 30vw;
-			height: 30vw;
-			margin-top: 0.5rem;
-
-			image {
-				width: 100%;
-				height: 100%;
-			}
-		}
-	}
-
-	.padding-block {
-		display: block;
-		width: 100vw;
-		height: 3rem;
-	}
-	
-	.empty-text{
-		color:rgba(0,0,0,0.6);
-		text-align: center;
-		padding-top:0.6rem;
-	}
+	@import "./home.scss"
 </style>
